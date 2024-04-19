@@ -1,8 +1,25 @@
 import openpyxl
+import	requests
+import shutil
 from openpyxl.styles import NamedStyle, Font, Alignment, numbers, PatternFill, Border, Side
+from PIL import Image
 from datetime import datetime
 
 #Funções definidas ao codigo
+
+def baixar_arquivo(url):
+    nome_arquivo = 'DemonstrativoFinanceiro.xlsx'  # Obtém o nome do arquivo a partir da URL
+    caminho_completo = f'{r'C:\Users\kaiky\OneDrive\Área de Trabalho\projeto planilha'}/{nome_arquivo}'  # Caminho completo do arquivo de destino
+
+    # Faz o download do arquivo
+    r = requests.get(url, stream=True)
+    if r.status_code == 200:
+        with open(caminho_completo, 'wb') as f:
+            r.raw.decode_content = True
+            shutil.copyfileobj(r.raw, f)
+        print(f'O arquivo foi baixado para {caminho_completo}')
+    else:
+        print('Falha ao baixar o arquivo.')
 
 def Tipo_Moeda(celula, valor):
 
@@ -22,7 +39,6 @@ def Bordas(bloco):
     célula.border = borda
 
 def receitas():
-
 
     Total = 0
     planilha = ['B5', 'B6', 'B7', 'B8', 'B9', 'B10']
@@ -115,6 +131,7 @@ def Definir_Data(bloco):
     Background_Color("A3", "95b3d7")
 
 def Despesas():
+
     Marcador = 14
     Soma = 0
     Local2 = 0
@@ -147,10 +164,15 @@ def Despesas():
             
         Adicionar = input('Adicionar mais despesas? (SIM ou NÃO)').upper()
     return Soma, Local2
+
 try:
+    #baixar arquivo
+    baixar_arquivo('https://docs.google.com/uc?id=1CiJb0QKFnC4qq5Cc9l7Xj1GBNfTZDVHX&export=download')
     # Abrir planilha para edição
     workbook = openpyxl.load_workbook('DemonstrativoFinanceiro.xlsx')
+    workbook.create_sheet(title='ConfirmaçõesPagamentos')
     print('Arquivo aberto com sucesso, edite como quiser!')
+
 
     # Acessando planilha ativa
     sheet = workbook.active
@@ -183,11 +205,15 @@ try:
     cell.value = Resultado_Formatado
     sheet.cell(row=sheet.max_row, column=2, value=Resultado_Formatado)
 
-    cell = sheet['C2']
-    cell.value = 'Saldo Atual:'
-    fonte_estilizada = Font(name='Calibri', size=18, bold=False, color='000000')
+    Final_Line = sheet.max_row
+    sheet.insert_rows(Final_Line + 2)
+
+    cell = sheet.cell(row=Final_Line + 2, column=1, value = 'Saldo Atual:')
+    cell.alignment = Alignment(horizontal='center', vertical='center')
+    fonte_estilizada = Font(name='Calibri', size=23, bold=False, color='000000')
     cell.font = fonte_estilizada
-    Background_Color('C2', '9bbb59')
+    Bordas(f"B{Final_Line+2}")
+    Background_Color(f"A{Final_Line+2}", '9bbb59')
 
     S2 = float(''.join(filter(str.isdigit, S2)))
     Receitas_total = float(''.join(filter(str.isdigit,Receitas_total)))
@@ -197,17 +223,23 @@ try:
     Saldo_Atual = S2 + Receitas_total - Resultado
 
     # Formate o resultado
+    Saldo_Atual/=100
+
+    Saldo_Atual = round(Saldo_Atual, 2)
     Saldo_Atual_Formatado = f'R${Saldo_Atual}'
 
     # Insira o resultado na célula D2
-    cell = sheet['D2']
+    cell = sheet.cell(row=Final_Line + 2, column=2, value = Saldo_Atual_Formatado)
     cell.value = Saldo_Atual_Formatado
-    Background_Color('D2', 'eaf51b')
-    Bordas('C2')
-    Bordas('D2')
-
+    fonte_estilizada = Font(name='Calibri', size=22, bold=False, color='000000')
+    cell.alignment = Alignment(horizontal='center', vertical='center')
+    cell.font = fonte_estilizada
+    Background_Color(f"B{Final_Line+2}", 'eaf51b')
+    Bordas(f"B{Final_Line+2}")
+    
     # Salvar as alterações no arquivo
     workbook.save('DemonstrativoFinanceiro.xlsx')
+    
     print('Alterações salvas com sucesso!')
 
     workbook.close()
