@@ -1,4 +1,7 @@
+import atexit
+import os
 import openpyxl
+import subprocess
 import	requests
 import shutil
 from openpyxl.styles import NamedStyle, Font, Alignment, numbers, PatternFill, Border, Side
@@ -9,7 +12,7 @@ from datetime import datetime
 
 def baixar_arquivo(url):
     nome_arquivo = 'DemonstrativoFinanceiro.xlsx'  # Obtém o nome do arquivo a partir da URL
-    caminho_completo = f'{r'C:\Users\kaiky\OneDrive\Área de Trabalho\projeto planilha'}/{nome_arquivo}'  # Caminho completo do arquivo de destino
+    caminho_completo = f'{r"C:\Users\kaiky\OneDrive\Área de Trabalho\projeto planilha"}/{nome_arquivo}'  # Caminho completo do arquivo de destino
 
     # Faz o download do arquivo
     r = requests.get(url, stream=True)
@@ -130,6 +133,9 @@ def Definir_Data(bloco):
      # Aplicar o estilo de fundo
     Background_Color("A3", "95b3d7")
 
+def open_theend():
+    subprocess.Popen(['start', 'DemonstrativoFinanceiro.xlsx'], shell=True)
+
 def Despesas():
 
     Marcador = 14
@@ -243,6 +249,7 @@ try:
     print('Alterações salvas com sucesso!')
 
     workbook.close()
+    atexit.register(open_theend)
 
 except FileNotFoundError:
     print('Arquivo não encontrado, verificar o erro')
